@@ -4,8 +4,8 @@
 
 using namespace Interactions;
 
-GLsizei Interactions::WINDOW_WIDTH = 1280;
-GLsizei Interactions::WINDOW_HEIGHT = 1024;
+GLsizei Interactions::WINDOW_WIDTH = 500;
+GLsizei Interactions::WINDOW_HEIGHT = 500;
 
 void resize(int w, int h) {
 	glViewport(0, 0, (GLsizei)w, (GLsizei)h);
@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
 	glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH) - WINDOW_WIDTH) / 2,
 		(glutGet(GLUT_SCREEN_HEIGHT) - WINDOW_HEIGHT) / 2);
 
-	glutCreateWindow("CG-Project-1");
+	glutCreateWindow("CG-Project-2");
 
 	// default window and drawing colors if none specified else where
 	glClearColor(0.5f, 0.2f, 0.1f, 0.0f);

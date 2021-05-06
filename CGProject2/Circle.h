@@ -4,6 +4,7 @@
 class Circle
 {
 public:
+	Circle();
 	Circle(Interactions::Coordinate, int radius);
 	void drawCircle(float r, float g, float b);
 	Interactions::Coordinate getPosition() { return this->position; }

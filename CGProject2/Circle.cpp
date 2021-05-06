@@ -1,12 +1,17 @@
 #include "Circle.h"
 #define PI 3.14159265358979323846f
+
+Circle::Circle() {
+	this->position = Interactions::Coordinate();
+	this->radius = 1;
+}
 Circle::Circle(Interactions::Coordinate center, int radius) {
 	this->position = center;
 	this->radius   = radius;
 	float x,y;
 	for (int i = 0; i < 50; ++i) {
-		x = radius * cos(2 * i * PI / 50) + center.coords[0]/2;
-		y = radius * sin(2 * i * PI / 50) + center.coords[1]/2;
+		x = radius * cos(2 * i * PI / 50) + center.coords[0];
+		y = radius * sin(2 * i * PI / 50) + center.coords[1];
 		this->vertices.push_back(Interactions::Coordinate((GLfloat) x,(GLfloat) y));
 	}
 	this->acceleration[0] = 0;
@@ -23,6 +28,7 @@ void Circle::drawCircle(float r, float g, float b) {
 	glEnd();
 }
 void Circle::rotate(float theta) {
+	
 	//Build component matrices
 	CompositeMatrix compositeTransformation = CompositeMatrix();
 	TranslationMatrix toOrigin   = TranslationMatrix(float(-this->position.coords[0]),
@@ -31,21 +37,24 @@ void Circle::rotate(float theta) {
 	TranslationMatrix toOriginal = TranslationMatrix(float(this->position.coords[0]),
 											         float(this->position.coords[1]));
 	//Compose component matrices
-	compositeTransformation.composeWith(&toOrigin);
-	compositeTransformation.composeWith(&rotate);
+
 	compositeTransformation.composeWith(&toOriginal);
+	compositeTransformation.composeWith(&rotate);
+	compositeTransformation.composeWith(&toOrigin);
 	//Apply component matrices to all circle vertices
 	for (auto& vertex : this->vertices) {
 		compositeTransformation.applyTo(vertex.coords);
 	}
+	compositeTransformation.applyTo(this->position.coords);
+
 }
 void Circle::translate(float tx, float ty) {
 	TranslationMatrix translation = TranslationMatrix(tx, ty);
-	
+
+	translation.applyTo(this->position.coords);
 	for (auto& vertex : this->vertices) {
 		translation.applyTo(vertex.coords);
 	}
-	translation.applyTo(this->position.coords);
 }
 void Circle::applyForce(float force[2]) {
 	this->acceleration[0] += force[0];
@@ -68,6 +77,6 @@ void Circle::update() {
 	float deltaY = (oldPosition[1] - this->position.coords[1]);
 	float distanceTravelled = std::sqrt(deltaX*deltaX + deltaY*deltaY);
 	float neededRotation = distanceTravelled/this->radius;
-	neededRotation *= 180/PI;
-	this->rotate(neededRotation);
+	neededRotation *= 180/PI; // convert to degrees.
+	this->rotate(neededRotation);	
 }

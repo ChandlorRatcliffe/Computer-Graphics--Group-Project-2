@@ -7,7 +7,6 @@ namespace Interactions {
     extern GLsizei WINDOW_HEIGHT;
 
     void handleMouseEvent(int button, int state, int x, int y);
-    void handleMotionEvent(int x, int y);
     void drawScene(void);
     void timer(int v);
 

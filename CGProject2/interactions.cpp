@@ -5,117 +5,11 @@
 
 using namespace Interactions;
 
-std::vector<Coordinate> coord_collect;
-Coordinate current;
-Interactions::Polygon shape;
 Circle circle;
 bool polygon_created = false;
-int coord_count = 0;
-GLfloat rotation_angle = 10.0;
-GLfloat old_mouse_coord[2];
-
-
-
-/*
- * Scales polygon object by a fixed increment +- 0.01 using the TransformationMatrix class.
- * Determines whether or not to scale up or down by comparing the
- * previous mouse coordinate to the current. Receives (x,y) coordiante
- * from the handleMotionEvent function.
- */
-void startScalingShape(int x, int y) {
-    GLfloat mouse_coord[2] = { (GLfloat)x, WINDOW_HEIGHT - (GLfloat)y };
-    GLfloat sx, sy;
-
-    if (mouse_coord[0] > old_mouse_coord[0]) {
-        // scale the polygon up
-        sx = 1.01f; sy = 1.01f;
-    }
-    else if (mouse_coord[0] < old_mouse_coord[0]) {
-        // scale the polygon down
-        sx = 0.99f; sy = 0.99f;
-    }
-    else {
-        // no scaling performed
-        sx = 1.0f; sy = 1.0f; 
-    }
-
-    TransformationMatrix T  = TranslationMatrix(centroid[0], centroid[1]);
-    TransformationMatrix TI = TranslationMatrix(-centroid[0], -centroid[1]);
-    TransformationMatrix S  = ScaleMatrix(sx, sy);
-    T.composeWith(&S);
-    T.composeWith(&TI);
-
-    for (int i = 0; i < shape.vert_count; i++) {
-        T.applyTo(shape.vertices[i].coords);
-    }
-
-   
-}
-
-/*
- * Translation of the polygon using the TranslationMatrix class, receives (x,y) coordinate
- * from the handleMotionEvent function.
- */
-void startTranslatingshape(int x, int y) {
-    // we calculate a new center point so our shape stays on the mouse
-    calcCentroid();
-    GLfloat mouse_coord[2] = { (GLfloat)x, WINDOW_HEIGHT - (GLfloat)y };
-
-    GLfloat tx = mouse_coord[0] - centroid[0];
-    GLfloat ty = mouse_coord[1] - centroid[1];
-
-    TranslationMatrix T = TranslationMatrix(tx, ty);
-
-    for (int i = 0; i < shape.vert_count; i++) {
-        T.applyTo(shape.vertices[i].coords);
-    }
-}
-
-/*
- * Subtracts the current (x, y) coordinate from the first
- * and checks if that value is in the range of -10 <= x,y <= 10
- * will return either true or false based on in_range variable
- */
-bool isInRange() {
-    float temp_x  = current.coords[0] - coord_collect[0].coords[0];
-    float temp_y  = current.coords[1] - coord_collect[0].coords[1];
-    bool in_range = -10 <= temp_x && temp_x <= 10 &&
-        -10 <= temp_y && temp_y <= 10;
-
-    return in_range;
-}
-
-// Function to create a polygon and setting the polygon_created variable to true
-void definePolygon() {
-    shape = Interactions::Polygon(coord_count, coord_collect);
-    polygon_created = true;
-    calcCentroid();
-}
-
-/*
- * Drawing coordinates grabbed from mouse clicks to the viewing window
- * Hints currently set render the point nearly round instead of as squares
- */
-void Coordinate::drawPoint() {
-    glPointSize(this->size);
-    glEnable(GL_POINT_SMOOTH);
-    glHint(GL_POINT_SMOOTH_HINT, GL_NEAREST);
-    glBegin(GL_POINTS);
-    glVertex2fv(this->coords);
-    glEnd();
-}
-
-/*
- * Function to draw the shape created once the first point as been clicked again
- * calls startRoatingShape to rotate the shape one each draw
- */
-void Polygon::drawPolygon() {
-    glBegin(GL_POLYGON);
-    for (auto i = 0; i < shape.vert_count; i++) {
-        glVertex2fv(this->vertices[i].coords);
-    }
-    glEnd();
-}
+bool initializing = true;
+bool changeDirection = false;
+float force[] = { 1.0, 0 };
 
 /*
  * Callback function for mouse events, also handling modifier key presses.
@@ -130,49 +24,41 @@ void Interactions::handleMouseEvent(int button, int state, int x, int y) {
     bool right_click_up  = (button == GLUT_RIGHT_BUTTON && state == GLUT_UP);   
     
     // Handling points when the mouse clicks in the window
-    if (left_click_up && !polygon_created) {
-        if (coord_count == 0)
-            current.first_point = true;
-
-        coord_collect.push_back(current);
-
-        if (isInRange() && coord_count > 0)
-            definePolygon();
-
-        coord_count++;
-    }
-    else {
-
-        int modifier = glutGetModifiers();
-
-        if (left_click_down && !polygon_created) {
-            current = Coordinate((GLfloat)x, WINDOW_HEIGHT - (GLfloat)y);
-        }
-        else if (left_click_down && polygon_created) {
-            switch (modifier) {
-            case GLUT_ACTIVE_SHIFT:
-                shape.is_being_scaled = true;
-                break;
-
-            case GLUT_ACTIVE_ALT:
-                // Reverses the rotation of the shape
-                rotation_angle = -rotation_angle;
-                break;
-            }
-        }
-        else if (left_click_up && (!shape.is_rotating || shape.is_being_scaled)) {
-            // restarts rotation once transformations are finished
-            shape.is_rotating = true;
-            shape.is_being_scaled = false;
+    if (left_click_down) {
+        if (initializing) {
+            circle.applyForce(force);
+            initializing = !initializing;
         }
     }
-
     // Closes current window
     if (right_click_up) exit(0);
 
     glutPostRedisplay();
 }
 
+
+void handleCollisions() {
+    float xmin = circle.getRadius()
+        , xmax = WINDOW_WIDTH - circle.getRadius()
+        , ymin = circle.getRadius()
+        , ymax = WINDOW_HEIGHT - circle.getRadius()
+        , x = circle.getPosition().coords[0]
+        , y = circle.getPosition().coords[1]
+        , xCorrection = int(x < xmin) * (xmin - x) + int(x > xmax) * (xmax - x)
+        , yCorrection = int(y < ymin) * (ymin - y) + int(y > ymax) * (ymax - y);
+    if (xCorrection != 0 || yCorrection != 0) {
+        changeDirection = true;
+        std::cout << "Collision detected! Correct: ";
+        std::cout << "(" << x << "," << y << ") -> ";
+        circle.translate(xCorrection, yCorrection);
+        std::cout << "(" << x + xCorrection << "," << y + yCorrection << ")" << std::endl;
+        force[0] *= -1;
+        circle.applyForce(force);
+        circle.applyForce(force);
+    }
+
+    
+}
 /*
  * Function to be passed to glutDisplayFunc
  * Draws either a point or if polygon_created is true, a Polygon.
@@ -181,17 +67,14 @@ void Interactions::drawScene(void)
 {
     glClear(GL_COLOR_BUFFER_BIT);
     if (!polygon_created) {
-        std::vector<Coordinate>::iterator it;
-        it = coord_collect.begin();
-        while (it != coord_collect.end())
-        {
-            it->drawPoint();
-            it++;
-        }
-        current.drawPoint();
+        float radius = WINDOW_HEIGHT / 12.0;
+        Interactions::Coordinate initialPosition = Interactions::Coordinate(WINDOW_WIDTH/2.0, radius);
+        circle = Circle(initialPosition, radius);
+        circle.drawCircle(1,1,1);
+        polygon_created = true;
     }
     else {
-        shape.drawPolygon();
+        circle.drawCircle(1,1,1);
     }
 
     glFlush();
@@ -204,10 +87,9 @@ void Interactions::drawScene(void)
  * Currently running at 60fps
  */
 void Interactions::timer(int v) {
-    if (shape.is_rotating && polygon_created) {
-        for (auto i = 0; i < shape.vert_count; i++)
-            startRotatingShape(i);
-        
+    if (polygon_created) {
+        circle.update();      
+        handleCollisions();
         glutPostRedisplay();
     }
     glutTimerFunc(1000 / 60, timer, v);
