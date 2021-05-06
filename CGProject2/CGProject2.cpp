@@ -45,7 +45,6 @@ int main(int argc, char** argv) {
 	glutReshapeFunc(resize);
 	glutTimerFunc(100, timer, 0);
 	glutMouseFunc(handleMouseEvent);
-	glutMotionFunc(handleMotionEvent);
 	glutMainLoop();
 
 	return 0;

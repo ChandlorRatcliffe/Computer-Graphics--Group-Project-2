@@ -11,3 +11,4 @@
 #include "ShearXMatrix.h"
 #include "ShearYMatrix.h"
 #include "CompositeMatrix.h"
+#include "Circle.h"

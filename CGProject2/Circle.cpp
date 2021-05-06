@@ -52,10 +52,22 @@ void Circle::applyForce(float force[2]) {
 	this->acceleration[1] += force[1];
 }
 void Circle::update() {
+	//Collect position pre-transformation
+	float oldPosition[2];
+	oldPosition[0] = this->position.coords[0];
+	oldPosition[1] = this->position.coords[1];
+	//Handle Physics
 	this->velocity[0] += this->acceleration[0];
 	this->velocity[1] += this->acceleration[1];
-	this->position.coords[0] += this->velocity[0];
-	this->position.coords[1] += this->velocity[1];
 	this->acceleration[0] = 0;
 	this->acceleration[1] = 0;
+	//Move object
+	this->translate(this->velocity[0], this->velocity[1]);
+	//Rotate object by distance moved:
+	float deltaX = (oldPosition[0] - this->position.coords[0]);
+	float deltaY = (oldPosition[1] - this->position.coords[1]);
+	float distanceTravelled = std::sqrt(deltaX*deltaX + deltaY*deltaY);
+	float neededRotation = distanceTravelled/this->radius;
+	neededRotation *= 180/PI;
+	this->rotate(neededRotation);
 }

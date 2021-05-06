@@ -8,39 +8,13 @@ using namespace Interactions;
 std::vector<Coordinate> coord_collect;
 Coordinate current;
 Interactions::Polygon shape;
-
+Circle circle;
 bool polygon_created = false;
 int coord_count = 0;
 GLfloat rotation_angle = 10.0;
-GLfloat centroid[2];
 GLfloat old_mouse_coord[2];
 
-/*
- * Finds the center of the polygon(very crude) and populates the array
- * centroid with the x and y coordinates
- */
-void calcCentroid() {
-    GLfloat xSum = 0, ySum = 0;
-    for (int i = 0; i < shape.vert_count; i++) {
-        xSum += shape.vertices[i].coords[0];
-        ySum += shape.vertices[i].coords[1];
-    }
-    centroid[0] = xSum / shape.vert_count;
-    centroid[1] = ySum / shape.vert_count;
-}
 
-/*
- * Starts rotating the polygon in a clockwise manner about its origin
- * using the TransforamtionMatrix class
- */
-void startRotatingShape(int x) {
-    TransformationMatrix R  = RotationMatrix(rotation_angle);
-    TransformationMatrix T  = TranslationMatrix(centroid[0], centroid[1]);
-    TransformationMatrix TI = TranslationMatrix(-centroid[0], -centroid[1]);
-    T.composeWith(&R);
-    T.composeWith(&TI);
-    T.applyTo(shape.vertices[x].coords);
-}
 
 /*
  * Scales polygon object by a fixed increment +- 0.01 using the TransformationMatrix class.
@@ -75,8 +49,7 @@ void startScalingShape(int x, int y) {
         T.applyTo(shape.vertices[i].coords);
     }
 
-    // calculate new center of the shape since we changed its size
-    calcCentroid();
+   
 }
 
 /*
@@ -197,25 +170,6 @@ void Interactions::handleMouseEvent(int button, int state, int x, int y) {
     // Closes current window
     if (right_click_up) exit(0);
 
-    glutPostRedisplay();
-}
-
-/*
- * Tracks position of mouse allowing for points to be positioned precisely
- * and handle transformations to be applied on the polygon. Tracks the previous
- * mouse coordinate in the arry old_mouse_coord.
- */
-void Interactions::handleMotionEvent(int x, int y) {
-    current.setCoord((GLfloat)x, WINDOW_HEIGHT - (GLfloat)y);
-
-    if (polygon_created && !shape.is_being_scaled) {
-        startTranslatingshape(x, y);
-    }
-    else if (polygon_created && shape.is_being_scaled) {
-        startScalingShape(x, y);
-        old_mouse_coord[0] = (GLfloat)x;
-        old_mouse_coord[1] = (GLfloat)y;
-    }
     glutPostRedisplay();
 }
 
