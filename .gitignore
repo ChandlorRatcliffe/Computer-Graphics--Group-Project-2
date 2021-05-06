@@ -30,3 +30,8 @@
 *.exe
 *.out
 *.app
+*.db
+*.db-shm
+*.db-wal
+*.opendb
+CGProject2/.vs/CGProject2/v16/ipch/AutoPCH/e0199d1c530271e4/CGPROJECT2.ipch
