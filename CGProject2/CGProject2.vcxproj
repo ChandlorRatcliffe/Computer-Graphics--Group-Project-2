@@ -141,6 +141,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CGProject2.cpp" />
+    <ClCompile Include="Circle.cpp" />
     <ClCompile Include="CompositeMatrix.cpp" />
     <ClCompile Include="interactions.cpp" />
     <ClCompile Include="RotationMatrix.cpp" />
@@ -154,6 +155,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Circle.h" />
     <ClInclude Include="commonLibs.h" />
     <ClInclude Include="CompositeMatrix.h" />
     <ClInclude Include="interactions.h" />

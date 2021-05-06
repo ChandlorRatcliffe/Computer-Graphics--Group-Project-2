@@ -2,6 +2,8 @@
 #include <math.h>
 #include <string>
 #include <iostream>
+#include <vector>
+#include <GL/glut.h>
 #include "TransformationMatrix.h"
 #include "RotationMatrix.h"
 #include "ScaleMatrix.h"

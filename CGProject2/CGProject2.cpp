@@ -1,5 +1,4 @@
-#include <vector>
-#include <GL/glut.h>
+
 #include "commonLibs.h"
 #include "interactions.h"
 
