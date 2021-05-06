@@ -9,7 +9,9 @@ Circle circle;
 bool polygon_created = false;
 bool initializing = true;
 bool changeDirection = false;
-float force[] = { 1.0, 0 };
+bool freeFromRow = false;
+float forceStrength = 5.0;
+float force[] = { 0, 0 };
 
 /*
  * Callback function for mouse events, also handling modifier key presses.
@@ -26,8 +28,18 @@ void Interactions::handleMouseEvent(int button, int state, int x, int y) {
     // Handling points when the mouse clicks in the window
     if (left_click_down) {
         if (initializing) {
+            force[0] = forceStrength;
             circle.applyForce(force);
             initializing = !initializing;
+        }
+        else if (!freeFromRow) {
+            float t = force[0];
+            force[0] = -t;
+            circle.applyForce(force); // stop
+            force[0] = t;
+            force[1] = -forceStrength;
+            circle.applyForce(force);
+            freeFromRow = !freeFromRow;
         }
     }
     // Closes current window
@@ -35,8 +47,35 @@ void Interactions::handleMouseEvent(int button, int state, int x, int y) {
 
     glutPostRedisplay();
 }
-
-
+/**
+ * Reverses the X direction of the circle
+ */
+void reverseX() {
+    float x = force[0];
+    float y = force[1];
+    force[0] = -x;
+    force[1] = -y;
+    circle.applyForce(force); // STOP
+    force[1] = y;
+    circle.applyForce(force); // CONTINUE
+}
+/**
+ * Reverses the Y direction of the circle
+ */
+void reverseY() {
+    float x = force[0];
+    float y = force[1];
+    force[0] = -x;
+    force[1] = -y;
+    circle.applyForce(force); // STOP
+    force[0] = x;
+    circle.applyForce(force); // CONTINUE
+}
+/**
+ * Check for collisions with the window boundaries, 
+ * offset to account for overstep, and reverse the
+ * direction of the object
+ */
 void handleCollisions() {
     float xmin = circle.getRadius()
         , xmax = WINDOW_WIDTH - circle.getRadius()
@@ -48,16 +87,10 @@ void handleCollisions() {
         , yCorrection = int(y < ymin) * (ymin - y) + int(y > ymax) * (ymax - y);
     if (xCorrection != 0 || yCorrection != 0) {
         changeDirection = true;
-        std::cout << "Collision detected! Correct: ";
-        std::cout << "(" << x << "," << y << ") -> ";
         circle.translate(xCorrection, yCorrection);
-        std::cout << "(" << x + xCorrection << "," << y + yCorrection << ")" << std::endl;
-        force[0] *= -1;
-        circle.applyForce(force);
-        circle.applyForce(force);
-    }
-
-    
+        if(x < xmin || x > xmax) reverseX();
+        if(y < ymin || y > ymax) reverseY();
+    }    
 }
 /*
  * Function to be passed to glutDisplayFunc

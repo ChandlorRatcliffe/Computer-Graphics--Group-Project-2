@@ -57,6 +57,7 @@ void Circle::translate(float tx, float ty) {
 	}
 }
 void Circle::applyForce(float force[2]) {
+	//Modify acceleration for use in the next update.
 	this->acceleration[0] += force[0];
 	this->acceleration[1] += force[1];
 }
