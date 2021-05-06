@@ -4,7 +4,7 @@
 
 using namespace Interactions;
 
-GLsizei Interactions::WINDOW_WIDTH = 500;
+GLsizei Interactions::WINDOW_WIDTH = 1000;
 GLsizei Interactions::WINDOW_HEIGHT = 500;
 
 void resize(int w, int h) {
