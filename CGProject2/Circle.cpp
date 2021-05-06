@@ -9,6 +9,10 @@ Circle::Circle(Interactions::Coordinate center, int radius) {
 		y = radius * sin(2 * i * PI / 50) + center.coords[1]/2;
 		this->vertices.push_back(Interactions::Coordinate((GLfloat) x,(GLfloat) y));
 	}
+	this->acceleration[0] = 0;
+	this->acceleration[1] = 0;
+	this->velocity[0] = 0;
+	this->velocity[1] = 0;
 };
 void Circle::drawCircle(float r, float g, float b) {
 	glColor3f(r, g, b);
